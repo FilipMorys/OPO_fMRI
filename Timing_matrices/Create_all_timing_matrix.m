@@ -21,7 +21,7 @@ SCRIPT TO EXTRACT TIMING FROM DESIGN FILES AND ACCUMULATE THEM IN ONE CELL ARRAY
 %% Set up parameters
 
 All_timing={};
-FilesDir = '/Users/filip/Documents/MPI CBS/OLF_fMRI/Design_files/'; % Specify base directory where the files are found, ONLY design files can be there because I am using dir function to list them all
+FilesDir = '/data/p_02187/Daten/Logfiles_fMRT/LogfilesExtracted/'; % Specify base directory where the files are found, ONLY design files can be there because I am using dir function to list them all
 
 %% Start a general loop for all steps
 
@@ -45,7 +45,7 @@ for i=3:length(dir(FilesDir))
     
 %% 3. Convert text to numbers and merge with Timing file
 
-    for l=7:8
+    for l=7:8 % Fill in 7th and 8th row in the Timing array
         Timing(l,:)=double(categorical(Text(l-6,:)));
     end
     
