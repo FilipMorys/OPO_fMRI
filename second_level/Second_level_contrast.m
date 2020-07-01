@@ -8,7 +8,7 @@ function [] = Second_level_contrast(model_dir,model_name,con_weights,con_names)
             matlabbatch{1}.spm.stats.con.consess{c}.tcon.name = con_names{c};
             matlabbatch{1}.spm.stats.con.consess{c}.tcon.weights = con_weights{c};
             matlabbatch{1}.spm.stats.con.consess{c}.tcon.sessrep = 'none';
-            matlabbatch{1}.spm.stats.con.delete = 0;
+            matlabbatch{1}.spm.stats.con.delete = 1;
 
         end
         

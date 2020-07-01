@@ -17,6 +17,7 @@
 clear all
 %% 1. Set up parameteers and flags
 % Flags
+ROI=0;
 Second_level=1;
 Estimate=1;
 Contrast=1;
@@ -24,9 +25,10 @@ TFCE=0;
 
 %% Parameters and variables
 addpath(genpath('~/spm12/spm12/'))
-model_name='BP_sanity';
+flvl_model='Weight_independent_conditions';
+model_name='AllConditions_BMI_HOMA';
 data_dir='/data/pt_02187/fMRI_analysis/first_level/';
-folders=dir(sprintf('%s/%s', data_dir, model_name));
+folders=dir(sprintf('%s/%s', data_dir, flvl_model));
 load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_data.mat');
 subs={};
 covs={};
@@ -42,27 +44,61 @@ for p=1:length(folders)
 end
 
 model_dir='/data/pt_02187/fMRI_analysis/second_level/';
+
+ROI_list={'ACC','Amygdala','Caudate','Hippocampus','Insula','NAcc','Orbitofrontal','Pallidum','Piriform','Putamen','VmPFC','VTA'};
+
 %% CONTRASTS FROM 1st LEVEL
-conds=[3]; % Which conditions - contrasts - to take into 2nd level model
+conds=[5]; % Which conditions - contrasts - to take into 2nd level model
 
 files={};
 for c=1:length(conds)
     for f=1:length(subs)
-        files{f,c}=sprintf('%s/%s/%s/con_00%02d.nii',data_dir,model_name,subs{f},conds(c));
+        files{f,c}=sprintf('%s/%s/%s/con_00%02d.nii',data_dir,flvl_model,subs{f},conds(c));
     end
 end
 
 %% CONTRASTS
-con_weights={[1];[0 0 0 1];[0 0 0 0 1];[0 0 0 0 -1]};
-con_names={'BP','BMI','HOMA_IR','-HOMA_IR'};
+con_weights={[1]};
+con_names={'All'};
 
 %% Covariates for the model
 ncov=4;
-cov_names={'Sex','Age','BMI','HOMA_IR'};
+cov_names={'Sex','Age','HOMA_IR','BMI'};
 
 %% TFCE Specs
 nperm=5000;
 
+%% RUN ALL IF ROI - SPECIAL CASE
+
+if ROI
+    
+    for r=1:length(ROI_list)
+        model_name='All_BMI';
+        ROI1=ROI_list(r);
+        [files,model_name]=Second_level_ROI(ROI1,files,conds,subs,data_dir,flvl_model,model_name);
+    
+    model_dir='/data/pt_02187/fMRI_analysis/second_level_ROI/';
+    
+    if Second_level
+        Second_level_onesamplettest(covs,ncov,cov_names,model_dir,files,model_name)
+    end
+
+    try
+    if Estimate
+        Second_level_estimate(model_dir,model_name)
+    end
+
+    if Contrast
+        Second_level_contrast(model_dir,model_name,con_weights,con_names)
+    end
+
+    if TFCE
+        Second_level_TFCE(model_dir,model_name,con_names,nperm)
+    end
+    catch
+    end
+    end
+end
 %% 3. Run model specification
 
 if Second_level

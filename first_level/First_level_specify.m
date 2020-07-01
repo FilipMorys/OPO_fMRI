@@ -23,34 +23,50 @@ function [] = First_level_specify(pmod,odour,ons,durs,current_sub, data_dir, mod
     matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
     matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 8;
     matlabbatch{1}.spm.stats.fmri_spec.sess.scans = {preprocessed};
-    for j=1:ncond
+    for j=1:ncond % for all conditions
         matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).name = conds{j};
-        if odour(j)~=0
-            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(timing(:,7)==odour(j),ons{j}));
-            if length(durs{j})==2
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(timing(:,7)==odour(j),durs{j}(1))-timing(timing(:,7)==odour(j),durs{j}(2)));
-            else
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(timing(:,7)==odour(j),ons{j}))),1); 
+        if odour(j)~=0 && odour(j)~=5 && odour(j)~=6 % If dividing conditions for different odours and if this odour is NOT neutral and if it is not an error regressor
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==1,ons{j}));
+            if length(durs{j})==2 % If not modelling events as stick functions, so with durations
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==1,durs{j}(1))-timing(timing(:,7)==odour(j) & timing(:,8)==1,durs{j}(2))); % If participant smelled anaything consciously ONLY
+            else % if durations = 0
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==1,ons{j}))),1); 
             end
-            if pmod(j)~=0 && odour(j)~=3
+            if pmod(j)~=0 % If we want parametric modulation
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.name = sprintf('Intensity_%s',conds{j});
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.param = rmmissing(timing(timing(:,7)==odour(j),6));
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.param = rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==1,6));
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.poly = 1;
-            else
+            else % If not pmod
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod = struct('name', {}, 'param', {}, 'poly', {});
             end
-        else
-            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(:,ons{j}));
-            if length(durs{j})==2
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(:,durs{j}(1))-timing(:,durs{j}(2)));
-            else
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(:,ons{j}))),1); 
+        elseif odour(j)==5 % If odour is neutral 
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==2,ons{j})); % only take trials correctly identified as neutral
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod = struct('name', {}, 'param', {}, 'poly', {}); % no pmod
+            if length(durs{j})==2 % If not modelling events as stick functions, so with durations
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==2,durs{j}(1))-timing(timing(:,7)==odour(j) & timing(:,8)==2,durs{j}(2))); % If participant smelled anaything consciously ONLY
+            else % if durations = 0
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(timing(:,7)==odour(j) & timing(:,8)==2,ons{j}))),1); 
             end
-            if pmod(j)~=0
+        elseif odour(j)==6 % For error regressors
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(timing(:,7)~=5 & timing(:,8)==2,ons{j})); % only take trials wrongly identified as neutral
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod = struct('name', {}, 'param', {}, 'poly', {}); % no pmod
+            if length(durs{j})==2 % If not modelling events as stick functions, so with durations
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(timing(:,7)~=5 & timing(:,8)==2,durs{j}(1))-timing(timing(:,7)~=5 & timing(:,8)==2,durs{j}(2))); % If participant smelled anaything consciously ONLY
+            else % if durations = 0
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(timing(:,7)~=5 & timing(:,8)==2,ons{j}))),1); 
+            end            
+        else % If simple condition odour-independent
+            matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).onset = rmmissing(timing(timing(:,8)==1,ons{j}));
+            if length(durs{j})==2 % If not modelling events as stick functions, so with durations
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = rmmissing(timing(timing(:,8)==1,durs{j}(1))-timing(timing(:,8)==1,durs{j}(2)));
+            else % if durations = 0
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).duration = zeros(length(rmmissing(timing(timing(:,8)==1,ons{j}))),1); 
+            end
+            if pmod(j)~=0 && odour(j)~=5 % If pmod and stimulation was not neutral
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.name = sprintf('Intensity_%s',conds{j});
-                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.param = rmmissing(timing(:,6));
+                matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.param = rmmissing(timing(timing(:,8)==1,6));
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod.poly = 1;
-            else
+            else % If not pmod
                 matlabbatch{1}.spm.stats.fmri_spec.sess(1).cond(j).pmod = struct('name', {}, 'param', {}, 'poly', {});
             end
         end    
