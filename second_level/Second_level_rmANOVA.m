@@ -7,6 +7,11 @@ if exist(sprintf('%s/%s',model_dir,model_name),'dir')
 end
 mkdir(sprintf('%s/%s',model_dir,model_name))
 
+for i=1:ncov
+    files(isnan(covs.(cov_names{i})),:)=[]; % Remove NaNs from covariates and also scans of those people
+    covs(isnan(covs.(cov_names{i})),:)=[];
+end
+
 matlabbatch{1}.spm.stats.factorial_design.dir = {sprintf('%s/%s',model_dir,model_name)};
 
 for s=1:length(files)
@@ -19,11 +24,15 @@ matlabbatch{1}.spm.stats.factorial_design.des.anovaw.gmsca = 0;
 matlabbatch{1}.spm.stats.factorial_design.des.anovaw.ancova = 0;
 if ncov~=0
     for c=1:ncov
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).c = repelem(covs.(cov_names{c}),ncond);
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).cname = cov_names{c};
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).iCFI = 1;
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).iCC = 1;
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).c = repmat(covs.(cov_names{c}),ncond,1);
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).cname = cov_names{c};
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).iCFI = 1;
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).iCC = 1;
     end
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).c = [matlabbatch{1}.spm.stats.factorial_design.covar(1).c;matlabbatch{1}.spm.stats.factorial_design.covar(2).c;matlabbatch{1}.spm.stats.factorial_design.covar(3).c;matlabbatch{1}.spm.stats.factorial_design.covar(4).c;];
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).cname = 'Pleasantness';
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).iCFI = 1;
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).iCC = 1;
 else
         matlabbatch{1}.spm.stats.factorial_design.multi_cov = struct('files', {}, 'iCFI', {}, 'iCC', {});
 end

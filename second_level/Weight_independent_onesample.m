@@ -13,6 +13,8 @@
 
 6. Run TFCE estimation
 
+con_names={'Cucumber','Orange','Chips','Chocolate','All_stim','HC','LC','Savoury','Sweet'};
+
 %}
 clear all
 %% 1. Set up parameteers and flags
@@ -22,14 +24,15 @@ Second_level=1;
 Estimate=1;
 Contrast=1;
 TFCE=0;
+Display=1;
 
 %% Parameters and variables
 addpath(genpath('~/spm12/spm12/'))
 flvl_model='Weight_independent_conditions';
-model_name='AllConditions_BMI_HOMA';
+model_name='AllConditions_pleasantness';
 data_dir='/data/pt_02187/fMRI_analysis/first_level/';
 folders=dir(sprintf('%s/%s', data_dir, flvl_model));
-load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_data.mat');
+load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_pleasantness.mat');
 subs={};
 covs={};
 subs_to_exclude={'sub-10','sub-43','sub-54','sub-45','sub-22','sub-23','sub-37','sub-55','sub-57'}; %motion outliers and empty conditions
@@ -48,7 +51,7 @@ model_dir='/data/pt_02187/fMRI_analysis/second_level/';
 ROI_list={'ACC','Amygdala','Caudate','Hippocampus','Insula','NAcc','Orbitofrontal','Pallidum','Piriform','Putamen','VmPFC','VTA'};
 
 %% CONTRASTS FROM 1st LEVEL
-conds=[5]; % Which conditions - contrasts - to take into 2nd level model
+conds=[1]; % Which conditions - contrasts - to take into 2nd level model
 
 files={};
 for c=1:length(conds)
@@ -58,22 +61,26 @@ for c=1:length(conds)
 end
 
 %% CONTRASTS
-con_weights={[1]};
-con_names={'All'};
+con_weights={[1],[0 0 0 0 1],[0 0 0 0 -1]};
+con_names={'All','Cov','-Cov'};
 
 %% Covariates for the model
 ncov=4;
-cov_names={'Sex','Age','HOMA_IR','BMI'};
+cov_names={'Sex','Age','PassiveSmoking','Pl_O5'};
 
 %% TFCE Specs
 nperm=5000;
+
+%% Displaying
+cons=[1];
+con_disp={'All_conditions'};
 
 %% RUN ALL IF ROI - SPECIAL CASE
 
 if ROI
     
     for r=1:length(ROI_list)
-        model_name='All_BMI';
+        model_name='All';
         ROI1=ROI_list(r);
         [files,model_name]=Second_level_ROI(ROI1,files,conds,subs,data_dir,flvl_model,model_name);
     
@@ -94,6 +101,10 @@ if ROI
 
     if TFCE
         Second_level_TFCE(model_dir,model_name,con_names,nperm)
+    end
+    
+    if Display
+        Second_level_display(model_dir,model_name,cons,con_disp)
     end
     catch
     end
@@ -121,4 +132,10 @@ end
 
 if TFCE
     Second_level_TFCE(model_dir,model_name,con_names,nperm)
+end
+
+%% 7. Display and save results
+
+if Display
+    Second_level_display(model_dir,model_name,cons,con_disp)
 end

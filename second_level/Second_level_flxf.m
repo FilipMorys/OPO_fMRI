@@ -43,11 +43,15 @@ for s=1:length(files_lean)
 end
 if ncov~=0
     for c=1:ncov
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).c = repmat(covs.(cov_names{c}),ncond,1);
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).cname = cov_names{c};
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).iCFI = 1;
-        matlabbatch{1}.spm.stats.factorial_design.cov(c).iCC = 1;
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).c = repmat(covs.(cov_names{c}),ncond,1);
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).cname = cov_names{c};
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).iCFI = 1;
+        matlabbatch{1}.spm.stats.factorial_design.covar(c).iCC = 1;
     end
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).c = [matlabbatch{1}.spm.stats.factorial_design.covar(1).c;matlabbatch{1}.spm.stats.factorial_design.covar(2).c;matlabbatch{1}.spm.stats.factorial_design.covar(3).c;matlabbatch{1}.spm.stats.factorial_design.covar(4).c;];
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).cname = 'Pleasantness';
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).iCFI = 2;
+    matlabbatch{1}.spm.stats.factorial_design.cov(1).iCC = 1;
 else
         matlabbatch{1}.spm.stats.factorial_design.multi_cov = struct('files', {}, 'iCFI', {}, 'iCC', {});
 end

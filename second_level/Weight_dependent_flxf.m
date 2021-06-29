@@ -21,15 +21,16 @@ ROI=0;
 Second_level=1;
 Estimate=1;
 Contrast=1;
-TFCE=1;
+TFCE=0;
+Display=1;
 
 %% Parameters and variables
 addpath(genpath('~/spm12/spm12/'))
 flvl_model='Weight_independent_conditions';
-model_name='Weight_dependent_flxf';
+model_name='Weight_dependent_flxf_pleasantness';
 data_dir='/data/pt_02187/fMRI_analysis/first_level/';
 folders=dir(sprintf('%s/%s', data_dir, flvl_model));
-load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_data.mat');
+load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_pleasantness.mat');
 subs={};
 covs={};
 subs_to_exclude={'sub-10','sub-43','sub-54','sub-45','sub-22','sub-23','sub-37','sub-55','sub-57'}; %motion outliers and empty conditions
@@ -93,11 +94,15 @@ con_names={'Savory>Sweet.OB>Lean','Sweet>Savory.OB>Lean',...
     };
 
 %% Covariates for the model
-ncov=0;
-cov_names={'Sex','Age','BMI'};
+ncov=4;
+cov_names={'Pl_O5','Pl_O4','Pl_O3','Pl_O2'};
 
 %% TFCE Specs
 nperm=5000;
+
+%% Displaying
+cons=[1 2 3 4];
+con_disp=con_names;
 
 %% RUN ALL IF ROI - SPECIAL CASE
 
@@ -125,6 +130,9 @@ if ROI
 
     if TFCE
         Second_level_TFCE(model_dir,model_name,con_names,nperm)
+    end
+    if Display
+        Second_level_display(model_dir,model_name,cons,con_disp)
     end
     catch
     end
@@ -154,4 +162,9 @@ end
 
 if TFCE
     Second_level_TFCE(model_dir,model_name,con_names,nperm)
+end
+
+%% 7. Display and save results
+if Display
+    Second_level_display(model_dir,model_name,cons,con_disp)
 end

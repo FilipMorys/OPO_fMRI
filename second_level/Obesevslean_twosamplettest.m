@@ -13,6 +13,9 @@
 
 6. Run TFCE estimation
 
+con_names={'Cucumber','Orange','Chips','Chocolate','All_stim','HC','LC','Savoury','Sweet'};
+
+
 %}
 clear all
 %% 1. Set up parameteers and flags
@@ -22,14 +25,15 @@ Second_level=1;
 Estimate=1;
 Contrast=1;
 TFCE=0;
+Display=1;
 
 %% Parameters and variables
 addpath(genpath('~/spm12/spm12/'))
 flvl_model='Weight_independent_conditions';
-model_name='ObesevsLean_HC';
+model_name='ObesevsLean_LC_pl';
 data_dir='/data/pt_02187/fMRI_analysis/first_level/';
 folders=dir(sprintf('%s/%s', data_dir, flvl_model));
-load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_data.mat');
+load('/data/pt_02187/fMRI_analysis/timing_matrix/behavioural_pleasantness.mat');
 subs={};
 covs={};
 subs_to_exclude={'sub-10','sub-43','sub-54','sub-45','sub-22','sub-23','sub-37','sub-55','sub-57'}; %motion outliers and empty conditions
@@ -61,13 +65,17 @@ ROI_list={'ACC','Amygdala','Caudate','Hippocampus','Insula','NAcc','Orbitofronta
 %% CONTRASTS
 con_weights={[1 -1],[-1 1]};
     
-con_names={'Ob>Lean','Lean>Obese'};
+con_names={'Ob>Lean','Lean>Ob'};
 %% Covariates for the model
-ncov=2;
-cov_names={'Sex','Age'};
+ncov=4;
+cov_names={'Sex','Age','PassiveSmoking','Pl_LC'};
 
 %% TFCE Specs
 nperm=1000;
+
+%% Displaying
+cons=[1 2];
+con_disp={'Ob>Lean','Lean>Ob'};
 
 %% RUN ALL IF ROI - SPECIAL CASE
 
@@ -95,6 +103,9 @@ if ROI
 
     if TFCE
         Second_level_TFCE(model_dir,model_name,con_names,nperm)
+    end
+    if Display
+        Second_level_display(model_dir,model_name,cons,con_disp)
     end
     catch
     end
@@ -124,4 +135,10 @@ end
 
 if TFCE
     Second_level_TFCE(model_dir,model_name,con_names,nperm)
+end
+
+%% 7. Display and save results
+
+if Display
+    Second_level_display(model_dir,model_name,cons,con_disp)
 end
